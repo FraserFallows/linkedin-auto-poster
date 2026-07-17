@@ -1,4 +1,4 @@
-# LinkedIn Automated Poster
+# Automated LinkedIn Poster
 
 Automatically posts to my LinkedIn profile on a schedule.
 
