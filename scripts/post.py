@@ -22,9 +22,8 @@ from pathlib import Path
 
 import requests
 
-# Force UTF-8 output regardless of platform - the content contains emoji
-# (🤖 / ⚔️), and some environments (e.g. Windows consoles) default stdout to
-# a legacy codepage that can't encode them, crashing every print() call.
+# Windows consoles default to a codepage that can't encode this content's
+# emoji, crashing print() without this.
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stderr.reconfigure(encoding="utf-8")
 
@@ -48,7 +47,7 @@ VARGR = {
     "github_url": "github.com/FraserFallows/vargr-viking",
 }
 
-REPO_LINK_LINE = "🔗 See how this post was made: github.com/FraserFallows/linkedin-bot"
+REPO_LINK_LINE = "🔗 See how this post was made: github.com/FraserFallows/linkedin-auto-poster"
 VARGR_LINKS_LINE = f"Visit: {VARGR['site']} — Source: {VARGR['github_url']}"
 
 SUBSTANTIAL_MIN_COMMITS = 3
@@ -56,18 +55,12 @@ SUBSTANTIAL_MIN_LINES = 50
 
 TIER = {"target_chars": 250, "max_chars": 450, "sentences": "1-4"}
 
-# Claude always writes this reasoning before should_post (see summarise_commits) -
-# it's the forcing function that fixed should_post misclassifying things like OG
-# tags or the apostrophe edge-case fix as substantial. Flip to True to print it when
-# should_post looks wrong, and you need to see why; leave off otherwise.
+# Prints Claude's should_post reasoning when True - flip on when a verdict
+# looks wrong and you need to see why.
 DEBUG_EVALUATION = False
 
-# LINKEDIN_API_VERSION confirmed against LinkedIn's current versioning docs
-# (learn.microsoft.com/en-us/linkedin/marketing/versioning) - versions are
-# supported for a minimum of one year, so this will need bumping again in
-# 2027. The old hardcoded "202401" was rejected outright (HTTP 426 Upgrade
-# Required) the first time this ran for real - LinkedIn's docs literally
-# cite "202401" as an example of a deprecated version.
+# Bump roughly yearly - LinkedIn rejects deprecated versions outright with
+# 426 Upgrade Required (hit this for real with the old "202401").
 LINKEDIN_MAX_CHARS = 3000
 LINKEDIN_API_VERSION = "202607"
 
@@ -132,13 +125,11 @@ def load_intro_pool(path):
 
 def pick_intro(track, pool_size):
     """
-    Shuffle-bag with a boundary guard, not plain random-from-unused: the first
-    cycle is the file's literal order; every cycle after is a fresh permutation
-    with its first 3 slots barred from repeating the previous cycle's last 3.
-    Guarantees every intro is used exactly once per cycle and a minimum 4-post
-    gap between any repeat. Returns (intro_index, updated_track) without
-    mutating the input - the caller applies the update, skipped entirely on a
-    dry run so testing doesn't consume the cycle.
+    Shuffle-bag with a boundary guard, not plain random: first cycle is file
+    order, later cycles are fresh permutations whose first 3 slots exclude
+    the previous cycle's last 3 - guarantees a minimum 4-post gap between
+    repeats. Returns (intro_index, updated_track) without mutating input;
+    skipped on a dry run so testing doesn't consume the cycle.
     """
     order = track.get("intro_order")
     position = track.get("intro_position", 0)
@@ -388,18 +379,23 @@ def enforce_hard_limit(intro, content, extra_line=None):
 
 
 # --- LinkedIn API --------------------------------------------------------------
-# No refresh flow: LinkedIn only issues refresh tokens to approved Marketing
-# Developer Platform partners (confirmed against LinkedIn's own docs), which a
-# personal/hobby-tier app isn't. LINKEDIN_ACCESS_TOKEN is a long-lived (~60 day)
-# token obtained manually via the OAuth authorization code flow and stored
-# directly as a secret - see the plan's LinkedIn API Setup / Token Renewal
-# sections. There is no way to renew it from within the script; it just fails
-# clearly (see publish_post below) when it eventually expires.
+# No refresh flow: LinkedIn only grants refresh tokens to approved Marketing
+# Developer Platform partners, not a personal-tier app. LINKEDIN_ACCESS_TOKEN
+# is a long-lived (~60 day) token renewed manually (see plan: Token Renewal);
+# publish_post fails clearly on 401 when it expires.
+
+# Reserved by LinkedIn's "little" commentary format - every occurrence needs
+# escaping, not just when it'd look like markup. Real content hits this often
+# (C# generics, attributes). See: learn.microsoft.com/en-us/linkedin/marketing/
+# community-management/shares/little-text-format
+LITTLE_RESERVED_CHARS = set("|{}@[]()<>#\\*_~")
+
+
+def escape_little_text(text):
+    return "".join(f"\\{c}" if c in LITTLE_RESERVED_CHARS else c for c in text)
 
 
 def publish_post(access_token, text):
-    # TODO before first real use: verify this request shape against current
-    # LinkedIn Posts API docs (fields/headers do change).
     headers = {
         "Authorization": f"Bearer {access_token}",
         "LinkedIn-Version": LINKEDIN_API_VERSION,
@@ -408,7 +404,7 @@ def publish_post(access_token, text):
     }
     body = {
         "author": os.environ["LINKEDIN_PERSON_URN"],
-        "commentary": text,
+        "commentary": escape_little_text(text),
         "visibility": "PUBLIC",
         "distribution": {
             "feedDistribution": "MAIN_FEED",
@@ -426,7 +422,7 @@ def publish_post(access_token, text):
             "::error::LinkedIn returned 401 Unauthorized - LINKEDIN_ACCESS_TOKEN has "
             "almost certainly expired (LinkedIn access tokens last ~60 days, and this "
             "app isn't approved for refresh tokens, so renewal is manual). Redo the "
-            "OAuth authorization flow and update the LINKEDIN_ACCESS_TOKEN secret.",
+            "OAuth authorisation flow and update the LINKEDIN_ACCESS_TOKEN secret.",
             file=sys.stderr,
         )
     raise_for_status(resp)
@@ -543,9 +539,8 @@ def main():
         publish_post(access_token, post_text)
         log_post("Vargr Viking (intro post)" if args.intro_post else "Vargr Viking", post_text)
 
-        # --intro-post seeds last_checked here too, on success - the one and
-        # only auto-bootstrap moment, and only because this path is already
-        # an explicit, manually-triggered run (see plan: Rollout Plan).
+        # --intro-post seeds last_checked here too - the one auto-bootstrap
+        # moment, safe only because this run is explicit and manual.
         track.update(updated_intro_state)
         track["last_checked_date"] = now_iso
         track["last_checked_sha"] = latest_sha
