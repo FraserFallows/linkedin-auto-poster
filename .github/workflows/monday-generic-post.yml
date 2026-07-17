@@ -33,14 +33,12 @@ jobs:
       - name: Resolve dry-run mode
         id: resolve
         run: |
-          # Scheduled runs always start as a dry run during the initial review
-          # period (see Rollout Plan) - flip this literal to false once Monday's
-          # output is consistently trustworthy. Manual runs use whatever the
-          # workflow_dispatch input says.
+          # Live since 2026-07-17 - scheduled runs publish for real; manual
+          # runs still honour the dry_run input.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
           else
-            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run post script

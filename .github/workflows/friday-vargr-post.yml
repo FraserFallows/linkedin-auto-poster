@@ -38,16 +38,13 @@ jobs:
       - name: Resolve inputs
         id: resolve
         run: |
-          # Scheduled runs always start as a dry run during the initial review
-          # period (see Rollout Plan) - flip this literal to false once Friday's
-          # output is consistently trustworthy. Manual runs use whatever the
-          # workflow_dispatch inputs say. intro_post only ever comes from a
-          # manual run - the scheduled trigger never sets it.
+          # Live since 2026-07-17 - scheduled runs publish for real; manual
+          # runs still honour the inputs. intro_post is manual-only.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
             echo "intro_post=${{ inputs.intro_post }}" >> "$GITHUB_OUTPUT"
           else
-            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
             echo "intro_post=false" >> "$GITHUB_OUTPUT"
           fi
 
