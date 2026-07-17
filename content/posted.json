@@ -15,5 +15,23 @@
     ],
     "intro_position": 1,
     "last_checked_sha": "5171b4971fe5bc086c2fe0662cb45a4e236bc532"
+  },
+  "generic": {
+    "used_snippet_ids": [
+      41
+    ],
+    "intro_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "intro_position": 1
   }
 }
