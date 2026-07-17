@@ -1,5 +1,19 @@
 {
   "vargr": {
-    "last_checked_date": "2026-06-22T00:00:00Z"
+    "last_checked_date": "2026-07-17T00:23:30.805816+00:00",
+    "intro_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "intro_position": 1,
+    "last_checked_sha": "5171b4971fe5bc086c2fe0662cb45a4e236bc532"
   }
 }
