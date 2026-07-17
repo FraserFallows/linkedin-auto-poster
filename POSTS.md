@@ -20,7 +20,7 @@ The human built a website with a backend API handling events, contact form submi
 
 Visit: vargrviking.co.uk — Source: github.com/FraserFallows/vargr-viking
 
-🔗 See how this post was made: github.com/FraserFallows/linkedin-bot
+🔗 See how this post was made: github.com/FraserFallows/linkedin-auto-poster
 
 ---
 
