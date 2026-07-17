@@ -1,0 +1,75 @@
+name: Friday Vargr Viking post
+
+on:
+  schedule:
+    # Every Friday at 09:00 UTC
+    - cron: '0 9 * * 5'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (print composed post instead of publishing)'
+        required: true
+        default: true
+        type: boolean
+      intro_post:
+        description: 'One-time whole-history intro post (see Rollout Plan) - only for the very first Vargr post, never on a schedule'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Resolve inputs
+        id: resolve
+        run: |
+          # Scheduled runs always start as a dry run during the initial review
+          # period (see Rollout Plan) - flip this literal to false once Friday's
+          # output is consistently trustworthy. Manual runs use whatever the
+          # workflow_dispatch inputs say. intro_post only ever comes from a
+          # manual run - the scheduled trigger never sets it.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+            echo "intro_post=${{ inputs.intro_post }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+            echo "intro_post=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run post script
+        env:
+          DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_PERSON_URN: ${{ secrets.LINKEDIN_PERSON_URN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ steps.resolve.outputs.intro_post }}" = "true" ]; then
+            python scripts/post.py --mode vargr --intro-post
+          else
+            python scripts/post.py --mode vargr
+          fi
+
+      - name: Commit updated state
+        if: steps.resolve.outputs.dry_run == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content/posted.json POSTS.md
+          git diff --quiet --cached || git commit -m "Log Friday Vargr Viking post [skip ci]"
+          git push

@@ -1,0 +1,16 @@
+# IDE
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Scratch
+scripts/scratch/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
