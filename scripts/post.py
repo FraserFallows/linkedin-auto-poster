@@ -62,10 +62,14 @@ TIER = {"target_chars": 250, "max_chars": 450, "sentences": "1-4"}
 # should_post looks wrong, and you need to see why; leave off otherwise.
 DEBUG_EVALUATION = False
 
-# TODO before first real (non-dry-run) use: confirm both of these against
-# current LinkedIn API docs - they're the kind of thing that changes.
+# LINKEDIN_API_VERSION confirmed against LinkedIn's current versioning docs
+# (learn.microsoft.com/en-us/linkedin/marketing/versioning) - versions are
+# supported for a minimum of one year, so this will need bumping again in
+# 2027. The old hardcoded "202401" was rejected outright (HTTP 426 Upgrade
+# Required) the first time this ran for real - LinkedIn's docs literally
+# cite "202401" as an example of a deprecated version.
 LINKEDIN_MAX_CHARS = 3000
-LINKEDIN_API_VERSION = "202401"
+LINKEDIN_API_VERSION = "202607"
 
 GITHUB_API = "https://api.github.com"
 ANTHROPIC_API = "https://api.anthropic.com/v1/messages"
