@@ -18,7 +18,8 @@
   },
   "generic": {
     "used_snippet_ids": [
-      41
+      41,
+      7
     ],
     "intro_order": [
       0,
@@ -32,6 +33,6 @@
       8,
       9
     ],
-    "intro_position": 1
+    "intro_position": 2
   }
 }

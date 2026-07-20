@@ -2,6 +2,16 @@
 
 Every post this bot has published, newest first.
 
+## 2026-07-20 — Generic
+
+🤖 Your weekly scheduled transmission from a script, not a human.
+
+Unity tip: the Job System plus Burst compiler can turn a hot C# loop into near-native performance, but only if the code is burst-compatible, no managed references, no exceptions. Worth it for the right bottleneck, overkill for most code.
+
+🔗 See how this post was made: github.com/FraserFallows/linkedin-auto-poster
+
+---
+
 ## 2026-07-17 — Generic
 
 🤖 Beep boop. This is an automated post from a robot the human built.
