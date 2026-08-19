@@ -177,7 +177,9 @@ def github_headers():
 
 def fetch_commits(since_iso=None):
     """Commits to the Vargr Viking repo, optionally since a given ISO date.
-    Returns a list of dicts newest-first: {sha, message, is_merge}."""
+    Returns a list of dicts newest-first: {sha, message, is_merge}. message
+    is the full commit message (subject + body), not just the subject line -
+    body text (e.g. a bulleted description) still feeds the summary."""
     commits = []
     url = f"{GITHUB_API}/repos/{VARGR['repo']}/commits"
     params = {"per_page": 100}
@@ -194,7 +196,7 @@ def fetch_commits(since_iso=None):
         for c in batch:
             commits.append({
                 "sha": c["sha"],
-                "message": c["commit"]["message"].splitlines()[0],
+                "message": c["commit"]["message"],
                 "is_merge": len(c.get("parents", [])) > 1,
             })
         if len(batch) < params["per_page"]:
@@ -219,6 +221,19 @@ def is_substantial(non_merge_commits):
         if fetch_commit_line_count(commit["sha"]) >= SUBSTANTIAL_MIN_LINES:
             return True
     return False
+
+
+def format_commit_for_prompt(message):
+    """Renders one commit as a '- Subject' bullet, with any body lines
+    (e.g. a bulleted description) indented underneath - keeps a multi-line
+    message visually scoped to its own commit instead of bleeding into the
+    next bullet."""
+    subject, *rest = message.splitlines()
+    body_lines = [line for line in rest if line.strip()]
+    if not body_lines:
+        return f"- {subject}"
+    indented_body = "\n".join(f"    {line.strip()}" for line in body_lines)
+    return f"- {subject}\n{indented_body}"
 
 
 def summarise_commits(messages, intro_post=False):
@@ -289,7 +304,7 @@ def summarise_commits(messages, intro_post=False):
         "say.\n"
         "Treat near-identical consecutive commit messages (e.g. a fixup commit reusing "
         "the same message as the one before it) as a single logical change, not two.\n\n"
-        "Commit messages:\n" + "\n".join(f"- {m}" for m in messages)
+        "Commit messages:\n" + "\n".join(format_commit_for_prompt(m) for m in messages)
     )
 
     headers = {
