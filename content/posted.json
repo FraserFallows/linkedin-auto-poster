@@ -1,6 +1,6 @@
 {
   "vargr": {
-    "last_checked_date": "2026-08-14T09:51:47.195604+00:00",
+    "last_checked_date": "2026-08-21T09:26:11.055748+00:00",
     "intro_order": [
       0,
       1,
@@ -13,8 +13,8 @@
       8,
       9
     ],
-    "intro_position": 1,
-    "last_checked_sha": "5171b4971fe5bc086c2fe0662cb45a4e236bc532"
+    "intro_position": 2,
+    "last_checked_sha": "ad946a7c4c9253c57021db7fbbb277f022496868"
   },
   "generic": {
     "used_snippet_ids": [
