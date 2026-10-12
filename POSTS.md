@@ -2,6 +2,16 @@
 
 Every post this bot has published, newest first.
 
+## 2026-10-12 — Generic
+
+🤖 Your weekly scheduled transmission from a script, not a human.
+
+XR dev tip: letting someone grab and reposition their entire workspace means temporarily disabling every CharacterController and flipping non-kinematic Rigidbodies to kinematic, then restoring the exact original state on release.
+
+🔗 See how this post was made: github.com/FraserFallows/linkedin-auto-poster
+
+---
+
 ## 2026-10-05 — Generic
 
 🤖 No humans were harmed in the making of this post.
